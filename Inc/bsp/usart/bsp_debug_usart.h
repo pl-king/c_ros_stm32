@@ -20,6 +20,7 @@
 
 #define DEBUG_USARTx_AFx                             GPIO_AF7_USART1
 
+#define USARTx_IRQHANDLER                     			 USART1_IRQHandler
 #define DEBUG_USART_IRQn                             USART1_IRQn
 /* ¿©’π±‰¡ø ------------------------------------------------------------------*/
 extern UART_HandleTypeDef husart_debug;

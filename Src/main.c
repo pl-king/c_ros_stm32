@@ -30,6 +30,9 @@
 #define TASK_ENABLE 0
 
 /* 私有变量 ------------------------------------------------------------------*/
+uint8_t main_sta=0; //用作处理主函数各种if，去掉多余的flag（1打印里程计）（2调用计算里程计数据函数）（3串口接收成功）（4串口接收失败）
+uint8_t aRxBuffer;
+uint8_t aRxBuffer2;
 /* 扩展变量 ------------------------------------------------------------------*/
 extern unsigned int Task_Delay[NumOfTask];
 
@@ -121,30 +124,46 @@ int main(void)
     printf("检测不到MPU6050，停机");
 	  while(1);
   }
-  
+    /* 使能接收，进入中断回调函数 */
+  HAL_UART_Receive_IT(&husart_debug,&aRxBuffer,1);
+	HAL_UART_Transmit_IT(&husart_debug, (uint8_t *)&"123",3);
   /* 无限循环 */
   while (1)
   {
-    if(Task_Delay[0]==TASK_ENABLE)
+
+   if(Task_Delay[0]==TASK_ENABLE)
     {
       LED1_TOGGLE;
       Task_Delay[0]=1000;
     }
     
-    if(Task_Delay[1]==0)
+   if(Task_Delay[1]==0)
     {
       MPU6050ReadAcc(Accel);			
-      printf("\r\n加速度： %8d%8d%8d    ",Accel[0],Accel[1],Accel[2]);
+      //printf("\r\n加速度： %8d%8d%8d    ",Accel[0],Accel[1],Accel[2]);
       MPU6050ReadGyro(Gyro);
-      printf("陀螺仪： %8d%8d%8d    ",Gyro[0],Gyro[1],Gyro[2]);
+      //printf("陀螺仪： %8d%8d%8d    ",Gyro[0],Gyro[1],Gyro[2]);
       
       MPU6050_ReturnTemp(&Temp);
-      printf("温度： %d",Temp);
-      
+			aRxBuffer2=123;
+     //printf("温度： %d",Temp);
+			HAL_UART_Transmit_IT(&husart_debug, (uint8_t *)&"123",3);
       Task_Delay[1]=100;//此值每1ms会减1，减到0才可以重新进来这里，所以执行的周期是100ms
-    }    
+    }
+    
   }
 }
+/**
+  * 函数功能: 串口接收完成回调函数
+  * 输入参数: 无
+  * 返 回 值: 无
+  * 说    明：无
+  */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
+{
 
+  HAL_UART_Transmit(&husart_debug,&aRxBuffer,1,0);
+  HAL_UART_Receive_IT(&husart_debug,&aRxBuffer,1);
+}
 
 /******************* (C) COPYRIGHT 2015-2020 硬石嵌入式开发团队 *****END OF FILE****/

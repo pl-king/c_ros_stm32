@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * 文件名程: main.c 
+  * 文件名程: bsp_usartx 
   * 作    者: 硬石嵌入式开发团队
   * 版    本: V1.0
   * 编写日期: 2017-03-30
@@ -21,7 +21,6 @@
 /* 私有宏定义 ----------------------------------------------------------------*/
 /* 私有变量 ------------------------------------------------------------------*/
 UART_HandleTypeDef husart_debug;
-
 /* 扩展变量 ------------------------------------------------------------------*/
 /* 私有函数原形 --------------------------------------------------------------*/
 /* 函数体 --------------------------------------------------------------------*/
@@ -51,7 +50,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     HAL_GPIO_Init(DEBUG_USARTx_Tx_GPIO, &GPIO_InitStruct);
     
     GPIO_InitStruct.Pin = DEBUG_USARTx_Rx_GPIO_PIN;  
-    HAL_GPIO_Init(DEBUG_USARTx_Tx_GPIO, &GPIO_InitStruct);       
+    HAL_GPIO_Init(DEBUG_USARTx_Rx_GPIO, &GPIO_InitStruct);       
   }  
 }
 
@@ -77,6 +76,19 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
     HAL_NVIC_DisableIRQ(DEBUG_USART_IRQn);
   }
 }
+/**
+  * 函数功能: NVIC配置
+  * 输入参数: 无
+  * 返 回 值: 无
+  * 说    明: 无
+  */
+static void MX_NVIC_USARTx_Init(void)
+{
+  /* USART1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DEBUG_USART_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(DEBUG_USART_IRQn);
+}
+
 
 /**
   * 函数功能: 串口参数配置.
@@ -98,7 +110,9 @@ void MX_DEBUG_USART_Init(void)
   husart_debug.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   husart_debug.Init.OverSampling = UART_OVERSAMPLING_16;
   HAL_UART_Init(&husart_debug);
-  
+	
+    /* 配置串口中断并使能，需要放在HAL_UART_Init函数后执行修改才有效 */
+  MX_NVIC_USARTx_Init();
 }
 
 /**
